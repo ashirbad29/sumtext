@@ -1,0 +1,8 @@
+*/**.js
+*/**.d.ts
+dist
+node_modules
+.next
+build
+out
+next.config.js
