@@ -1,6 +1,5 @@
-import { getAnalytics } from 'firebase/analytics';
 import { initializeApp } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
+import { collection, doc, getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -13,7 +12,11 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+// const analytics = getAnalytics(app);
 
 // Firestore
 export const db = getFirestore(app);
+
+// Utils
+export const textCollectionRef = collection(db, 'texts');
+export const getDocRef = (docId: string) => doc(db, 'texts', docId);
