@@ -1,3 +1,4 @@
+import { initialValue } from 'components/Editor/data';
 import { addDoc, serverTimestamp } from 'firebase/firestore';
 import type { GetServerSidePropsContext, NextPage } from 'next';
 
@@ -15,7 +16,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   // creates a new document and redirect it to /[slug]
   const docRef = await addDoc(textCollectionRef, {
     private: false,
-    content: 'Hi Mom!',
+    content: initialValue,
     createdAt: serverTimestamp(),
   });
 

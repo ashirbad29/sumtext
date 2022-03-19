@@ -1,40 +1,57 @@
-import { GearIcon } from '@radix-ui/react-icons';
+import BottomBar from 'components/BottomBar';
 import Editor from 'components/Editor/Index';
 import Nav from 'components/Nav';
-import { getDoc } from 'firebase/firestore';
 import { GetServerSidePropsContext } from 'next';
 import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import getText from 'services/getText';
+import { useEditorState } from 'state';
+import shallow from 'zustand/shallow';
 
-import { getDocRef } from '../firebase';
 const Home = ({ slug }: { slug: string }) => {
-  const [docData, setDocData] = useState<any>({});
+  const [loading, setLoading] = useState(false);
+  const { textData, setTextData, setContent } = useEditorState(
+    (state) => ({
+      textData: state.textData,
+      setTextData: state.setText,
+      setContent: state.setContent,
+    }),
+    shallow
+  );
   const router = useRouter();
 
-  // useEffect(() => {
-  //   const fetchDoc = async () => {
-  //     try {
-  //       const data = await getText(slug);
-  //       if (data) {
-  //         // console.log(data);
-  //         setDocData(data);
-  //       } else {
-  //         router.replace('/404');
-  //       }
-  //     } catch (e) {
-  //       console.log(e);
-  //     }
-  //   };
+  const fetchDoc = useCallback(async () => {
+    try {
+      setLoading(true);
+      const data = await getText(slug);
+      if (data) {
+        const { content, ...rest } = data;
+        console.log(data);
+        setTextData(rest);
+        setContent(content);
+        setLoading(false);
+      } else {
+        router.replace('/404');
+      }
+    } catch (e) {
+      console.log(e);
+    }
+  }, [router, slug, setContent, setTextData]);
 
-  //   fetchDoc();
-  // }, [slug, router]);
+  useEffect(() => {
+    fetchDoc();
+  }, [fetchDoc]);
 
   return (
     <main className="flex h-screen items-center justify-center bg-slate-200 bg-gradient-to-r from-green-200 to-green-300 py-8 backdrop-blur-lg">
-      <div className="h-full w-11/12 rounded-md bg-white">
-        <Nav />
-        <Editor />
+      <div className="flex h-full w-11/12 flex-col rounded-md bg-white">
+        {!loading && (
+          <>
+            <Nav />
+            <Editor />
+            <BottomBar />
+          </>
+        )}
       </div>
     </main>
   );

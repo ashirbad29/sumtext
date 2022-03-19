@@ -6,12 +6,13 @@ import {
 } from '@radix-ui/react-icons';
 import clsx from 'clsx';
 import isHotkey from 'is-hotkey';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import saveText from 'services/saveText';
 import { createEditor, Descendant, Editor } from 'slate';
 import { withHistory } from 'slate-history';
 import { Editable, ReactEditor, Slate, useSlate, withReact } from 'slate-react';
-
-import { initialValue } from './data';
+import { useEditorState } from 'state';
+import shallow from 'zustand/shallow';
 
 const HOTKEYS: Record<string, string> = {
   'mod+b': 'bold',
@@ -21,20 +22,52 @@ const HOTKEYS: Record<string, string> = {
 };
 
 const RichEditor = () => {
-  const [value, setValue] = useState<Descendant[]>(initialValue);
+  const { content, setContent, textData } = useEditorState(
+    (state) => ({
+      content: state.content,
+      setContent: state.setContent,
+      textData: state.textData,
+    }),
+    shallow
+  );
+
+  // const [value, setValue] = useState<Descendant[]>(initialValue);
   const editor = useMemo(() => withHistory(withReact(createEditor() as ReactEditor)), []);
   // const renderElement = useCallback(props => <Elemtn)
   const renderLeaf = useCallback((props) => <Leaf {...props} />, []);
+
+  const debounce = (func: (id: string, data: any) => Promise<void>, delay: number) => {
+    let timer: any = null;
+
+    return (...args: any) => {
+      clearTimeout(timer);
+
+      timer = setTimeout(() => {
+        console.log('debounce called');
+        func.apply(this, args);
+      }, delay);
+    };
+  };
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const debouncedFetch = useCallback(debounce(saveText, 3000), []);
+
   return (
-    <Slate editor={editor} value={value} onChange={(value) => setValue(value)}>
-      <div className="-ml-1 flex gap-3 px-3 pt-3">
+    <Slate
+      editor={editor}
+      value={content}
+      onChange={(value) => {
+        setContent(value);
+        debouncedFetch(textData.id, { ...textData, content: value });
+      }}>
+      <div className="-ml-1 flex gap-3 px-3 pt-1">
         <MarkButton format="bold" icon={<FontBoldIcon />} />
         <MarkButton format="italic" icon={<FontItalicIcon />} />
         <MarkButton format="underline" icon={<UnderlineIcon />} />
         <MarkButton format="code" icon={<CodeIcon />} />
       </div>
       <Editable
-        className="p-3"
+        className="flex-1 overflow-y-auto p-3"
         renderLeaf={renderLeaf}
         autoFocus
         spellCheck

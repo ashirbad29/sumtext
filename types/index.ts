@@ -3,4 +3,5 @@ export type TextType = {
   private: boolean;
   content: any;
   password?: string;
+  id: string;
 };

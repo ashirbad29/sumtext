@@ -6,6 +6,7 @@ const Nav = () => {
       <div className="font-medium tracking-wide">
         <span>✍️</span> <span className="text-sm text-gray-500">SumText</span>
       </div>
+
       <button className="group rounded-md p-1 text-gray-500 transition-all hover:bg-gray-200">
         <GearIcon className="h-5 w-5 group-hover:animate-spin" />
       </button>

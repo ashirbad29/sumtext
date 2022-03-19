@@ -1,4 +1,5 @@
 import { doc, getDoc } from 'firebase/firestore';
+import { TextType } from 'types';
 
 import { db } from '../firebase';
 
@@ -9,7 +10,7 @@ const getText = async (id: string) => {
   return {
     id: docSnap.id,
     ...docSnap.data(),
-  };
+  } as TextType;
 };
 
 export default getText;
