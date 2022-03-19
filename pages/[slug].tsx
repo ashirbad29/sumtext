@@ -2,6 +2,7 @@ import BottomBar from 'components/BottomBar';
 import Editor from 'components/Editor/Index';
 import Nav from 'components/Nav';
 import { GetServerSidePropsContext } from 'next';
+import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useCallback, useEffect, useState } from 'react';
 import getText from 'services/getText';
@@ -10,9 +11,8 @@ import shallow from 'zustand/shallow';
 
 const Home = ({ slug }: { slug: string }) => {
   const [loading, setLoading] = useState(false);
-  const { textData, setTextData, setContent } = useEditorState(
+  const { setTextData, setContent } = useEditorState(
     (state) => ({
-      textData: state.textData,
       setTextData: state.setText,
       setContent: state.setContent,
     }),
@@ -26,7 +26,6 @@ const Home = ({ slug }: { slug: string }) => {
       const data = await getText(slug);
       if (data) {
         const { content, ...rest } = data;
-        console.log(data);
         setTextData(rest);
         setContent(content);
         setLoading(false);
@@ -43,17 +42,31 @@ const Home = ({ slug }: { slug: string }) => {
   }, [fetchDoc]);
 
   return (
-    <main className="flex h-screen items-center justify-center bg-slate-200 bg-gradient-to-r from-green-200 to-green-300 py-8 backdrop-blur-lg">
-      <div className="flex h-full w-11/12 flex-col rounded-md bg-white">
-        {!loading && (
-          <>
-            <Nav />
-            <Editor />
-            <BottomBar />
-          </>
-        )}
-      </div>
-    </main>
+    <>
+      <Head key="head">
+        <title>SumText</title>
+      </Head>
+      <main className="flex h-screen min-h-[400px] items-center justify-center bg-slate-200 bg-gradient-to-r from-green-200 to-green-300 py-0 backdrop-blur-lg sm:py-8">
+        <div className="flex h-full w-full flex-col rounded-md bg-white sm:w-11/12">
+          {loading && (
+            <div className="flex flex-1 flex-col items-center justify-center gap-5">
+              <span className="relative flex h-4 w-4">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-orange-400 opacity-75"></span>
+                <span className="inline-flex h-4 w-4 rounded-full"></span>
+              </span>
+              <span className="font-medium text-orange-400">Loading</span>
+            </div>
+          )}
+          {!loading && (
+            <>
+              <Nav />
+              <Editor />
+              <BottomBar />
+            </>
+          )}
+        </div>
+      </main>
+    </>
   );
 };
 

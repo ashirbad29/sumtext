@@ -3,7 +3,9 @@ import { TextType } from 'types';
 
 import { db } from '../firebase';
 
-const getText = async (id: string) => {
+const getText = async (id: string | null) => {
+  if (!id) return;
+
   const docRef = doc(db, 'texts', id);
   const docSnap = await getDoc(docRef);
   if (!docSnap.exists()) return null;

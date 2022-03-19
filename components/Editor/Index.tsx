@@ -6,9 +6,9 @@ import {
 } from '@radix-ui/react-icons';
 import clsx from 'clsx';
 import isHotkey from 'is-hotkey';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 import saveText from 'services/saveText';
-import { createEditor, Descendant, Editor } from 'slate';
+import { createEditor, Editor } from 'slate';
 import { withHistory } from 'slate-history';
 import { Editable, ReactEditor, Slate, useSlate, withReact } from 'slate-react';
 import { useEditorState } from 'state';
@@ -22,35 +22,45 @@ const HOTKEYS: Record<string, string> = {
 };
 
 const RichEditor = () => {
-  const { content, setContent, textData } = useEditorState(
-    (state) => ({
-      content: state.content,
-      setContent: state.setContent,
-      textData: state.textData,
-    }),
-    shallow
-  );
+  const { content, setContent, textData, setSyncing, setHasUnsavedChanges } =
+    useEditorState(
+      (state) => ({
+        content: state.content,
+        setContent: state.setContent,
+        textData: state.textData,
+        setSyncing: state.setSynching,
+        setHasUnsavedChanges: state.setHasUnsavedContent,
+      }),
+      shallow
+    );
 
   // const [value, setValue] = useState<Descendant[]>(initialValue);
   const editor = useMemo(() => withHistory(withReact(createEditor() as ReactEditor)), []);
   // const renderElement = useCallback(props => <Elemtn)
   const renderLeaf = useCallback((props) => <Leaf {...props} />, []);
 
+  const syncChanges = async (id: string, data: any) => {
+    setSyncing(true);
+    await saveText(id, data);
+    setSyncing(false);
+    setHasUnsavedChanges(false);
+  };
+
   const debounce = (func: (id: string, data: any) => Promise<void>, delay: number) => {
     let timer: any = null;
 
     return (...args: any) => {
       clearTimeout(timer);
+      setHasUnsavedChanges(true);
 
       timer = setTimeout(() => {
-        console.log('debounce called');
         func.apply(this, args);
       }, delay);
     };
   };
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const debouncedFetch = useCallback(debounce(saveText, 3000), []);
+  const debouncedFetch = useCallback(debounce(syncChanges, 3000), []);
 
   return (
     <Slate

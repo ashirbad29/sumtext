@@ -1,14 +1,20 @@
 import { initialValue } from 'components/Editor/data';
 import { addDoc, serverTimestamp } from 'firebase/firestore';
 import type { GetServerSidePropsContext, NextPage } from 'next';
+import Head from 'next/head';
 
 import { textCollectionRef } from '../firebase';
 
 const Home: NextPage = () => {
   return (
-    <section className="container mt-3 pb-3">
-      <h1>Hi Mom!</h1>
-    </section>
+    <>
+      <Head>
+        <title>SumText</title>
+      </Head>
+      <section className="container mt-3 pb-3">
+        <h1>Hi Mom!</h1>
+      </section>
+    </>
   );
 };
 

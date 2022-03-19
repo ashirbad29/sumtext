@@ -10,8 +10,12 @@ type StoreType = {
     password?: string;
   };
   content: Array<Descendant>;
+  synching: boolean;
+  hasUnsavedContent: boolean;
   setText: (data: any) => void;
   setContent: (content: Array<Descendant>) => void;
+  setSynching: (val: boolean) => void;
+  setHasUnsavedContent: (val: boolean) => void;
 };
 
 export const useEditorState = create<StoreType>((set) => ({
@@ -20,6 +24,10 @@ export const useEditorState = create<StoreType>((set) => ({
     slug: null,
   },
   content: initialValue,
+  synching: false,
+  hasUnsavedContent: false,
   setText: (data) => set((state) => ({ textData: { ...state.textData, ...data } })),
   setContent: (content) => set({ content }),
+  setSynching: (value: boolean) => set({ synching: value }),
+  setHasUnsavedContent: (value: boolean) => set({ hasUnsavedContent: value }),
 }));
