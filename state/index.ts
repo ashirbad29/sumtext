@@ -12,9 +12,11 @@ type StoreType = {
   content: Array<Descendant>;
   synching: boolean;
   hasUnsavedContent: boolean;
+  refreshingContent: boolean;
   setText: (data: any) => void;
   setContent: (content: Array<Descendant>) => void;
   setSynching: (val: boolean) => void;
+  setRefreshingContent: (val: boolean) => void;
   setHasUnsavedContent: (val: boolean) => void;
 };
 
@@ -25,9 +27,11 @@ export const useEditorState = create<StoreType>((set) => ({
   },
   content: initialValue,
   synching: false,
+  refreshingContent: false,
   hasUnsavedContent: false,
   setText: (data) => set((state) => ({ textData: { ...state.textData, ...data } })),
   setContent: (content) => set({ content }),
   setSynching: (value: boolean) => set({ synching: value }),
+  setRefreshingContent: (value: boolean) => set({ refreshingContent: value }),
   setHasUnsavedContent: (value: boolean) => set({ hasUnsavedContent: value }),
 }));

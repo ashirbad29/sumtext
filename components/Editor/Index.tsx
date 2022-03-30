@@ -5,8 +5,10 @@ import {
   UnderlineIcon,
 } from '@radix-ui/react-icons';
 import clsx from 'clsx';
+import BottomBar from 'components/BottomBar';
 import isHotkey from 'is-hotkey';
 import { useCallback, useMemo } from 'react';
+import getText from 'services/getText';
 import saveText from 'services/saveText';
 import { createEditor, Editor } from 'slate';
 import { withHistory } from 'slate-history';
@@ -22,20 +24,27 @@ const HOTKEYS: Record<string, string> = {
 };
 
 const RichEditor = () => {
-  const { content, setContent, textData, setSyncing, setHasUnsavedChanges } =
-    useEditorState(
-      (state) => ({
-        content: state.content,
-        setContent: state.setContent,
-        textData: state.textData,
-        setSyncing: state.setSynching,
-        setHasUnsavedChanges: state.setHasUnsavedContent,
-      }),
-      shallow
-    );
+  const {
+    content,
+    setContent,
+    textData,
+    setSyncing,
+    setHasUnsavedChanges,
+    setRefreshingContent,
+  } = useEditorState(
+    (state) => ({
+      content: state.content,
+      setContent: state.setContent,
+      textData: state.textData,
+      setSyncing: state.setSynching,
+      setHasUnsavedChanges: state.setHasUnsavedContent,
+      setRefreshingContent: state.setRefreshingContent,
+    }),
+    shallow
+  );
 
   // const [value, setValue] = useState<Descendant[]>(initialValue);
-  const editor = useMemo(() => withHistory(withReact(createEditor() as ReactEditor)), []);
+  let editor = useMemo(() => withHistory(withReact(createEditor() as ReactEditor)), []);
   // const renderElement = useCallback(props => <Elemtn)
   const renderLeaf = useCallback((props) => <Leaf {...props} />, []);
 
@@ -62,35 +71,55 @@ const RichEditor = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const debouncedFetch = useCallback(debounce(syncChanges, 3000), []);
 
+  const handleRefresh = async () => {
+    try {
+      setRefreshingContent(true);
+
+      const data = await getText(textData.id);
+      if (data) {
+        const { content, ...rest } = data;
+        editor.children = content;
+        setContent(content);
+      }
+
+      setRefreshingContent(false);
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
   return (
-    <Slate
-      editor={editor}
-      value={content}
-      onChange={(value) => {
-        setContent(value);
-        debouncedFetch(textData.id, { ...textData, content: value });
-      }}>
-      <div className="-ml-1 flex gap-3 px-3 pt-1">
-        <MarkButton format="bold" icon={<FontBoldIcon />} />
-        <MarkButton format="italic" icon={<FontItalicIcon />} />
-        <MarkButton format="underline" icon={<UnderlineIcon />} />
-        <MarkButton format="code" icon={<CodeIcon />} />
-      </div>
-      <Editable
-        className="flex-1 overflow-y-auto p-3"
-        renderLeaf={renderLeaf}
-        autoFocus
-        spellCheck
-        onKeyDown={(event) => {
-          for (const hotkey in HOTKEYS) {
-            if (isHotkey(hotkey, event)) {
-              event.preventDefault();
-              const mark = HOTKEYS[hotkey];
-              toggleMark(editor, mark);
+    <>
+      <Slate
+        editor={editor}
+        value={content}
+        onChange={(value) => {
+          setContent(value);
+          debouncedFetch(textData.id, { ...textData, content: value });
+        }}>
+        <div className="-ml-1 flex gap-3 px-3 pt-1">
+          <MarkButton format="bold" icon={<FontBoldIcon />} />
+          <MarkButton format="italic" icon={<FontItalicIcon />} />
+          <MarkButton format="underline" icon={<UnderlineIcon />} />
+          <MarkButton format="code" icon={<CodeIcon />} />
+        </div>
+        <Editable
+          className="flex-1 overflow-y-auto p-3"
+          renderLeaf={renderLeaf}
+          autoFocus
+          spellCheck
+          onKeyDown={(event) => {
+            for (const hotkey in HOTKEYS) {
+              if (isHotkey(hotkey, event)) {
+                event.preventDefault();
+                const mark = HOTKEYS[hotkey];
+                toggleMark(editor, mark);
+              }
             }
-          }
-        }}></Editable>
-    </Slate>
+          }}></Editable>
+      </Slate>
+      <BottomBar onRefresh={handleRefresh} />
+    </>
   );
 };
 

@@ -61,7 +61,7 @@ const Home = ({ slug }: { slug: string }) => {
             <>
               <Nav />
               <Editor />
-              <BottomBar />
+              {/* <BottomBar /> */}
             </>
           )}
         </div>
